@@ -1,0 +1,470 @@
+<?php $__env->startSection('title', 'Academic Structure - SIATRACK'); ?>
+
+<?php $__env->startSection('content'); ?>
+<div class="w-full min-h-screen flex flex-col bg-slate-100/60"
+     x-data="{ 
+         openGrades: {},
+         activeFilter: 'all',
+         editModal: false,
+         editId: '',
+         editGrade: '',
+         editName: '',
+         editStrand: '',
+         editAdviserId: '',
+
+         assignModal: false,
+         assignSectionId: '',
+         assignSectionName: '',
+         assignGradeLevel: '',
+         currentAdviserId: '',
+
+         deleteModal: false,
+         deleteId: '',
+         deleteName: '',
+         deleteGrade: '',
+
+         toggleGrade(grade) {
+             this.openGrades[grade] = !this.openGrades[grade];
+         },
+
+         openEdit(id, grade, name, strand, adviserId) {
+             this.editId = id;
+             this.editGrade = grade;
+             this.editName = name;
+             this.editStrand = strand !== 'null' ? strand : '';
+             this.editAdviserId = adviserId || '';
+             this.editModal = true;
+         },
+
+         openAssign(id, name, grade, adviserId) {
+             this.assignSectionId = id;
+             this.assignSectionName = name;
+             this.assignGradeLevel = grade;
+             this.currentAdviserId = adviserId || '';
+             this.assignModal = true;
+         },
+
+         openDelete(id, name, grade) {
+             this.deleteId = id;
+             this.deleteName = name;
+             this.deleteGrade = grade;
+             this.deleteModal = true;
+         },
+
+         isJuniorHigh(grade) {
+             return /7|8|9|10/i.test(grade);
+         },
+
+         isSeniorHigh(grade) {
+             return /11|12/i.test(grade);
+         }
+     }">
+
+    <!-- Top Header Bar matching Master Timetable Matrix style -->
+    <header class="bg-white border-b-2 border-slate-200 px-6 sm:px-10 lg:px-12 py-6 flex flex-col md:flex-row md:items-center justify-between gap-6 sticky top-0 z-20 shadow-xs w-full">
+        <div class="flex items-center gap-4">
+            <div class="w-12 h-12 rounded-2xl bg-[#8b1818] text-white flex items-center justify-center text-lg shadow-sm shrink-0">
+                <i class="fa-solid fa-layer-group text-amber-300"></i>
+            </div>
+            <div>
+                <div class="flex items-center gap-3">
+                    <h1 class="text-2xl font-black text-slate-900 tracking-tight">Academic Structure</h1>
+                    <span class="px-3 py-1 rounded-xl text-xs font-black bg-amber-100 text-amber-900 border border-amber-300 uppercase tracking-wide shadow-2xs">A.Y. <?php echo e($activeSchoolYear ?? '2026-2027'); ?></span>
+                </div>
+                <p class="text-xs text-slate-500 font-bold mt-1">Manage Class Sections, Grade Levels, Strands, and Faculty Adviser Assignments</p>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content Container matching Master Timetable Matrix container -->
+    <main class="py-8 px-6 sm:px-10 lg:px-12 w-full space-y-6 flex-1 max-w-[1700px] mx-auto">
+
+        <?php if(session('success')): ?>
+        <div class="p-4 rounded-2xl bg-emerald-50 border-2 border-emerald-200 text-emerald-800 text-xs font-bold flex items-center gap-3 shadow-xs">
+            <i class="fa-solid fa-circle-check text-emerald-600 text-base"></i>
+            <span><?php echo e(session('success')); ?></span>
+        </div>
+        <?php endif; ?>
+
+        <?php if(session('error')): ?>
+        <div class="p-4 rounded-2xl bg-rose-50 border-2 border-rose-200 text-rose-800 text-xs font-bold flex items-center gap-3 shadow-xs">
+            <i class="fa-solid fa-triangle-exclamation text-rose-600 text-base"></i>
+            <span><?php echo e(session('error')); ?></span>
+        </div>
+        <?php endif; ?>
+
+        <?php if($errors->any()): ?>
+        <div class="p-4 rounded-2xl bg-red-50 border-2 border-red-200 text-red-800 text-xs font-bold flex items-center gap-3 shadow-xs">
+            <i class="fa-solid fa-triangle-exclamation text-red-600 text-base"></i>
+            <span>Please complete all required fields correctly.</span>
+        </div>
+        <?php endif; ?>
+
+
+
+        <!-- Compact Form Card for Adding Sections -->
+        <div class="bg-white rounded-3xl border-2 border-slate-200 p-6 sm:p-8 shadow-xs space-y-5">
+            <div class="flex items-center gap-3 pb-3 border-b border-slate-100">
+                <div class="w-8 h-8 rounded-xl bg-emerald-50 text-emerald-700 flex items-center justify-center text-xs border border-emerald-200 shrink-0">
+                    <i class="fa-solid fa-plus"></i>
+                </div>
+                <div>
+                    <h3 class="text-xs font-black uppercase tracking-wider text-slate-900">Add New Class Section</h3>
+                </div>
+            </div>
+
+            <form action="<?php echo e(route('admin.sections.store')); ?>" method="POST" class="space-y-4">
+                <?php echo csrf_field(); ?>
+                <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                    <div>
+                        <label class="block text-[10px] font-black uppercase tracking-wider text-slate-400 mb-1">Grade Level</label>
+                        <input type="text" name="grade_level" placeholder="E.G. GRADE 7 OR GRADE 11" required autocomplete="off"
+                               oninput="this.value = this.value.toUpperCase()"
+                               class="w-full bg-slate-50 border-2 border-slate-200 rounded-2xl px-4 py-3 text-xs font-bold text-slate-900 focus:outline-none focus:border-[#8b1818] uppercase transition shadow-2xs">
+                    </div>
+                    <div>
+                        <label class="block text-[10px] font-black uppercase tracking-wider text-slate-400 mb-1">Section Name</label>
+                        <input type="text" name="section_name" placeholder="E.G. DIAMOND OR AMBER" required autocomplete="off"
+                               oninput="this.value = this.value.toUpperCase()"
+                               class="w-full bg-slate-50 border-2 border-slate-200 rounded-2xl px-4 py-3 text-xs font-bold text-slate-900 focus:outline-none focus:border-[#8b1818] uppercase transition shadow-2xs">
+                    </div>
+                    <div>
+                        <label class="block text-[10px] font-black uppercase tracking-wider text-slate-400 mb-1">Strand (Optional for SHS)</label>
+                        <input type="text" name="strand" placeholder="E.G. STEM OR HUMSS" autocomplete="off"
+                               oninput="this.value = this.value.toUpperCase()"
+                               class="w-full bg-slate-50 border-2 border-slate-200 rounded-2xl px-4 py-3 text-xs font-bold text-slate-900 focus:outline-none focus:border-[#8b1818] uppercase transition shadow-2xs">
+                    </div>
+                </div>
+
+                <div class="flex justify-end pt-2">
+                    <button type="submit" class="px-6 py-3 rounded-2xl bg-[#8b1818] hover:bg-[#6b1212] text-white text-xs font-black uppercase tracking-wider transition shadow-md shadow-red-950/20 cursor-pointer flex items-center gap-2">
+                        <i class="fa-solid fa-save"></i> Save Section
+                    </button>
+                </div>
+            </form>
+        </div>
+
+        <!-- Directory Container -->
+        <div class="bg-white rounded-3xl border-2 border-slate-200 p-6 sm:p-8 shadow-xs space-y-6">
+            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-slate-100">
+                <div class="flex items-center gap-3">
+                    <div class="w-9 h-9 rounded-xl bg-[#8b1818] text-white flex items-center justify-center text-xs shadow-xs shrink-0">
+                        <i class="fa-solid fa-list-check text-amber-300"></i>
+                    </div>
+                    <div>
+                        <h2 class="text-xs font-black uppercase tracking-wider text-slate-900">Registered Sections Directory</h2>
+                        <p class="text-[10px] text-slate-400 font-bold">Grouped by Grade Level & Assigned Faculty Advisers</p>
+                    </div>
+                </div>
+
+                <!-- Junior / Senior Filter Tabs -->
+                <div class="flex items-center gap-1.5 bg-slate-100 p-1 rounded-2xl border border-slate-200">
+                    <button type="button" @click="activeFilter = 'all'" 
+                            :class="activeFilter === 'all' ? 'bg-white text-slate-900 shadow-xs' : 'text-slate-500 hover:text-slate-900'"
+                            class="px-4 py-2 rounded-xl text-xs font-black transition cursor-pointer">
+                        All
+                    </button>
+                    <button type="button" @click="activeFilter = 'jhs'" 
+                            :class="activeFilter === 'jhs' ? 'bg-white text-slate-900 shadow-xs' : 'text-slate-500 hover:text-slate-900'"
+                            class="px-4 py-2 rounded-xl text-xs font-black transition cursor-pointer">
+                        Junior High (7–10)
+                    </button>
+                    <button type="button" @click="activeFilter = 'shs'" 
+                            :class="activeFilter === 'shs' ? 'bg-white text-slate-900 shadow-xs' : 'text-slate-500 hover:text-slate-900'"
+                            class="px-4 py-2 rounded-xl text-xs font-black transition cursor-pointer">
+                        Senior High (11–12)
+                    </button>
+                </div>
+            </div>
+
+            <?php 
+                // Sort grade levels numerically
+                $sortedSections = $sections->sortBy(function($item) {
+                    preg_match('/\d+/', $item->grade_level, $matches);
+                    return isset($matches[0]) ? (int)$matches[0] : 0;
+                });
+                $groupedSections = $sortedSections->groupBy('grade_level'); 
+            ?>
+
+            <div class="space-y-4">
+                <?php $__empty_1 = true; $__currentLoopData = $groupedSections; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $gradeLevel => $gradeSections): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); $__empty_1 = false; ?>
+                <div class="border-2 border-slate-200 rounded-2xl overflow-hidden transition bg-white shadow-2xs"
+                     x-show="activeFilter === 'all' || (activeFilter === 'jhs' && isJuniorHigh('<?php echo e($gradeLevel); ?>')) || (activeFilter === 'shs' && isSeniorHigh('<?php echo e($gradeLevel); ?>'))">
+                    
+                    <!-- Accordion Header -->
+                    <button type="button" @click="toggleGrade('<?php echo e($gradeLevel); ?>')" 
+                            class="w-full px-5 py-4 flex items-center justify-between bg-white hover:bg-slate-50/80 transition cursor-pointer text-left">
+                        <div class="flex items-center gap-3">
+                            <span class="px-3.5 py-1.5 bg-[#8b1818] text-white font-black text-xs rounded-xl shadow-2xs uppercase">
+                                <?php echo e(str_contains(strtolower($gradeLevel), 'grade') ? $gradeLevel : 'GRADE ' . $gradeLevel); ?>
+
+                            </span>
+                            <span class="text-xs font-bold text-slate-600">
+                                <?php echo e($gradeSections->count()); ?> <?php echo e(Str::plural('Section', $gradeSections->count())); ?> Registered
+                            </span>
+                        </div>
+                        <div class="flex items-center gap-2 text-slate-400 font-bold text-xs">
+                            <span class="text-[10px] font-black uppercase tracking-wider" x-text="openGrades['<?php echo e($gradeLevel); ?>'] ? 'Hide Sections' : 'View Sections'"></span>
+                            <i class="fa-solid fa-chevron-down transition-transform duration-200" :class="openGrades['<?php echo e($gradeLevel); ?>'] ? 'rotate-180 text-[#8b1818]' : ''"></i>
+                        </div>
+                    </button>
+
+                    <!-- Accordion Content Table -->
+                    <div x-show="openGrades['<?php echo e($gradeLevel); ?>']" x-transition.origin.top style="display: none;" class="border-t-2 border-slate-100 bg-white p-4">
+                        <div class="overflow-x-auto">
+                            <table class="w-full text-left border-collapse">
+                                <thead>
+                                    <tr class="text-[10px] font-black uppercase tracking-wider text-slate-400 border-b border-slate-200 pb-2">
+                                        <th class="py-3 px-4">Grade & Section</th>
+                                        <th class="py-3 px-4">Academic Strand</th>
+                                        <th class="py-3 px-4">Assigned Faculty Adviser</th>
+                                        <th class="py-3 px-4">Enrolled Students</th>
+                                        <th class="py-3 px-4 text-right">Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody class="divide-y divide-slate-100 text-xs font-bold text-slate-700">
+                                    <?php $__currentLoopData = $gradeSections; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $sec): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+                                    <tr class="hover:bg-slate-50/70 transition align-middle">
+                                        <!-- Grade & Section Name -->
+                                        <td class="py-4 px-4 font-black text-slate-900 uppercase">
+                                            <div class="flex items-center gap-2.5">
+                                                <span class="w-2.5 h-2.5 rounded-full bg-emerald-500"></span>
+                                                <div>
+                                                    <span class="text-sm font-black text-slate-900 block"><?php echo e($sec->section_name); ?></span>
+                                                    <span class="text-[10px] text-slate-400 font-bold uppercase tracking-wider">
+                                                        <?php echo e(str_contains(strtolower($sec->grade_level), 'grade') ? $sec->grade_level : 'Grade ' . $sec->grade_level); ?>
+
+                                                    </span>
+                                                </div>
+                                            </div>
+                                        </td>
+
+                                        <!-- Strand -->
+                                        <td class="py-4 px-4">
+                                            <?php if($sec->strand): ?>
+                                            <span class="px-2.5 py-1 bg-amber-50 border border-amber-200 text-amber-900 rounded-lg font-black text-[10px] uppercase">
+                                                <?php echo e($sec->strand); ?>
+
+                                            </span>
+                                            <?php else: ?>
+                                            <span class="text-slate-400 text-[10px] uppercase font-semibold">General JHS</span>
+                                            <?php endif; ?>
+                                        </td>
+
+                                        <!-- Assigned Faculty Adviser -->
+                                        <td class="py-4 px-4">
+                                            <?php if($sec->adviser): ?>
+                                                <div class="flex items-center gap-2">
+                                                    <div class="w-8 h-8 rounded-xl bg-amber-100 text-amber-900 font-black flex items-center justify-center text-xs border border-amber-300 shadow-2xs">
+                                                        <?php echo e(strtoupper(substr($sec->adviser->first_name, 0, 1))); ?>
+
+                                                    </div>
+                                                    <div>
+                                                        <span class="font-black text-slate-900 block text-xs">
+                                                            <?php echo e($sec->adviser->first_name); ?> <?php echo e($sec->adviser->last_name); ?>
+
+                                                        </span>
+                                                        <span class="text-[10px] text-slate-400 font-semibold block"><?php echo e($sec->adviser->email); ?></span>
+                                                    </div>
+                                                </div>
+                                            <?php else: ?>
+                                                <button type="button" @click="openAssign('<?php echo e($sec->id); ?>', '<?php echo e($sec->section_name); ?>', '<?php echo e($sec->grade_level); ?>', '')"
+                                                        class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-amber-50 hover:bg-amber-100 text-amber-900 border border-amber-300 text-[10px] font-black transition cursor-pointer">
+                                                    <i class="fa-solid fa-user-plus text-[9px]"></i>
+                                                    <span>Assign Adviser</span>
+                                                </button>
+                                            <?php endif; ?>
+                                        </td>
+
+                                        <!-- Enrolled Students -->
+                                        <td class="py-4 px-4 text-slate-600 font-bold">
+                                            <span class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-slate-100 border border-slate-200 text-slate-700 text-[10px] font-black">
+                                                <i class="fa-solid fa-users text-[9px] text-slate-400"></i>
+                                                <span><?php echo e($sec->student_count ?? 0); ?> <?php echo e(Str::plural('Student', $sec->student_count ?? 0)); ?></span>
+                                            </span>
+                                        </td>
+
+                                        <!-- Actions -->
+                                        <td class="py-4 px-4 text-right">
+                                            <div class="inline-flex items-center gap-2">
+                                                <!-- Assign Teacher Button -->
+                                                <button type="button" @click="openAssign('<?php echo e($sec->id); ?>', '<?php echo e($sec->section_name); ?>', '<?php echo e($sec->grade_level); ?>', '<?php echo e(optional($sec->adviser)->id); ?>')"
+                                                        title="Assign/Change Adviser"
+                                                        class="w-8 h-8 rounded-xl bg-amber-50 hover:bg-amber-100 text-amber-900 border border-amber-200 flex items-center justify-center text-xs transition cursor-pointer">
+                                                    <i class="fa-solid fa-user-tie"></i>
+                                                </button>
+
+                                                <!-- Edit Section Button -->
+                                                <button type="button" @click="openEdit('<?php echo e($sec->id); ?>', '<?php echo e($sec->grade_level); ?>', '<?php echo e($sec->section_name); ?>', '<?php echo e($sec->strand); ?>', '<?php echo e(optional($sec->adviser)->id); ?>')"
+                                                        title="Edit Section"
+                                                        class="w-8 h-8 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 flex items-center justify-center text-xs transition cursor-pointer">
+                                                    <i class="fa-solid fa-pen-to-square"></i>
+                                                </button>
+
+                                                <!-- Delete Section Button -->
+                                                <button type="button"
+                                                        @click="openDelete('<?php echo e($sec->id); ?>', '<?php echo e(addslashes($sec->section_name)); ?>', '<?php echo e(addslashes($sec->grade_level)); ?>')"
+                                                        title="Delete Section"
+                                                        class="w-8 h-8 rounded-xl bg-red-50 hover:bg-red-100 text-red-600 border border-red-200 flex items-center justify-center text-xs transition cursor-pointer">
+                                                    <i class="fa-solid fa-trash-can"></i>
+                                                </button>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                    <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                </div>
+                <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); if ($__empty_1): ?>
+                <div class="py-12 text-center text-slate-400 font-bold space-y-1 bg-white rounded-3xl border-2 border-dashed border-slate-200">
+                    <div class="text-xl text-slate-300"><i class="fa-solid fa-folder-open"></i></div>
+                    <p class="text-xs">No class sections registered yet. Use the form above to add records.</p>
+                </div>
+                <?php endif; ?>
+            </div>
+        </div>
+
+    </main>
+
+    <!-- ================= EDIT SECTION MODAL (WITH TEACHER ASSIGNMENT INCLUDED) ================= -->
+    <div x-show="editModal" x-transition class="fixed inset-0 z-[9999] flex items-center justify-center bg-slate-950/50 backdrop-blur-xs p-4" style="display: none;" x-cloak>
+        <div @click.outside="editModal = false" class="bg-white rounded-3xl border-2 border-slate-200 p-8 max-w-md w-full shadow-2xl space-y-6">
+            <div class="flex items-center justify-between pb-3 border-b border-slate-100">
+                <h3 class="text-xs font-black uppercase tracking-wider text-slate-900">Edit Class Section</h3>
+                <button @click="editModal = false" class="text-slate-400 hover:text-slate-600 cursor-pointer">
+                    <i class="fa-solid fa-xmark text-sm"></i>
+                </button>
+            </div>
+
+            <form :action="'/admin/sections/' + editId" method="POST" class="space-y-4">
+                <?php echo csrf_field(); ?>
+                <?php echo method_field('PUT'); ?>
+
+                <div>
+                    <label class="block text-[10px] font-black uppercase tracking-wider text-slate-400 mb-1">Grade Level</label>
+                    <input type="text" name="grade_level" x-model="editGrade" required autocomplete="off"
+                           @input="editGrade = editGrade.toUpperCase()"
+                           class="w-full bg-slate-50 border-2 border-slate-200 rounded-2xl px-4 py-3 text-xs font-bold text-slate-900 focus:outline-none focus:border-[#8b1818] uppercase transition shadow-2xs">
+                </div>
+
+                <div>
+                    <label class="block text-[10px] font-black uppercase tracking-wider text-slate-400 mb-1">Section Name</label>
+                    <input type="text" name="section_name" x-model="editName" required autocomplete="off"
+                           @input="editName = editName.toUpperCase()"
+                           class="w-full bg-slate-50 border-2 border-slate-200 rounded-2xl px-4 py-3 text-xs font-bold text-slate-900 focus:outline-none focus:border-[#8b1818] uppercase transition shadow-2xs">
+                </div>
+
+                <div>
+                    <label class="block text-[10px] font-black uppercase tracking-wider text-slate-400 mb-1">Strand (Optional for SHS)</label>
+                    <input type="text" name="strand" x-model="editStrand" autocomplete="off"
+                           @input="editStrand = editStrand.toUpperCase()"
+                           class="w-full bg-slate-50 border-2 border-slate-200 rounded-2xl px-4 py-3 text-xs font-bold text-slate-900 focus:outline-none focus:border-[#8b1818] uppercase transition shadow-2xs">
+                </div>
+
+                <!-- Teacher Assignment Field inside Edit Modal -->
+                <div>
+                    <label class="block text-[10px] font-black uppercase tracking-wider text-slate-400 mb-1">Assigned Faculty Adviser</label>
+                    <select name="teacher_id" x-model="editAdviserId"
+                            class="w-full bg-slate-50 border-2 border-slate-200 rounded-2xl px-4 py-3 text-xs font-bold text-slate-900 focus:outline-none focus:border-[#8b1818] transition cursor-pointer shadow-2xs">
+                        <option value="">-- No Adviser (Unassigned) --</option>
+                        <?php $__currentLoopData = $teachers; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $teacher): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+                            <option value="<?php echo e($teacher->id); ?>">
+                                <?php echo e($teacher->first_name); ?> <?php echo e($teacher->last_name); ?> (<?php echo e($teacher->email); ?>)
+                            </option>
+                        <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
+                    </select>
+                </div>
+
+                <div class="grid grid-cols-2 gap-3 pt-3">
+                    <button @click="editModal = false" type="button" class="w-full py-3.5 rounded-2xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-black uppercase tracking-wider cursor-pointer transition">
+                        Cancel
+                    </button>
+                    <button type="submit" class="w-full py-3.5 rounded-2xl bg-[#8b1818] hover:bg-[#6b1212] text-white text-xs font-black uppercase tracking-wider shadow-md transition cursor-pointer">
+                        Update Changes
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- ================= ASSIGN ADVISER MODAL ================= -->
+    <div x-show="assignModal" x-transition class="fixed inset-0 z-[9999] flex items-center justify-center bg-slate-950/50 backdrop-blur-xs p-4" style="display: none;" x-cloak>
+        <div @click.outside="assignModal = false" class="bg-white rounded-3xl border-2 border-slate-200 p-8 max-w-md w-full shadow-2xl space-y-6">
+            <div class="flex items-center justify-between pb-3 border-b border-slate-100">
+                <div class="flex items-center gap-2.5">
+                    <div class="w-8 h-8 rounded-xl bg-amber-100 text-amber-900 flex items-center justify-center text-xs font-black border border-amber-300">
+                        <i class="fa-solid fa-user-tie"></i>
+                    </div>
+                    <div>
+                        <h3 class="text-xs font-black uppercase tracking-wider text-slate-900">Assign Faculty Adviser</h3>
+                        <p class="text-[10px] text-slate-400 font-bold" x-text="'Section ' + assignSectionName + ' (' + assignGradeLevel + ')'"></p>
+                    </div>
+                </div>
+                <button @click="assignModal = false" class="text-slate-400 hover:text-slate-600 cursor-pointer">
+                    <i class="fa-solid fa-xmark text-sm"></i>
+                </button>
+            </div>
+
+            <form :action="'/admin/sections/' + assignSectionId + '/assign-adviser'" method="POST" class="space-y-5">
+                <?php echo csrf_field(); ?>
+                <div>
+                    <label class="block text-[10px] font-black uppercase tracking-wider text-slate-400 mb-1.5">Select Faculty Adviser</label>
+                    <select name="teacher_id" x-model="currentAdviserId"
+                            class="w-full bg-white border-2 border-slate-200 rounded-2xl px-4 py-3 text-xs font-bold text-slate-900 focus:outline-none focus:border-[#8b1818] transition cursor-pointer shadow-2xs">
+                        <option value="">-- No Adviser (Unassigned) --</option>
+                        <?php $__currentLoopData = $teachers; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $teacher): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+                            <option value="<?php echo e($teacher->id); ?>">
+                                <?php echo e($teacher->first_name); ?> <?php echo e($teacher->last_name); ?> (<?php echo e($teacher->email); ?>)
+                            </option>
+                        <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
+                    </select>
+                    <p class="text-[10px] text-slate-500 font-medium mt-1.5">Selecting a teacher will update their advisory placement in User Management.</p>
+                </div>
+
+                <div class="grid grid-cols-2 gap-3 pt-2">
+                    <button @click="assignModal = false" type="button" class="w-full py-3.5 rounded-2xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-black uppercase tracking-wider cursor-pointer transition">
+                        Cancel
+                    </button>
+                    <button type="submit" class="w-full py-3.5 rounded-2xl bg-[#8b1818] hover:bg-[#6b1212] text-white text-xs font-black uppercase tracking-wider shadow-md transition cursor-pointer">
+                        Save Adviser
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+    <!-- ================= DELETE CONFIRMATION MODAL ================= -->
+    <div x-show="deleteModal" x-transition class="fixed inset-0 z-[9999] flex items-center justify-center bg-slate-950/50 backdrop-blur-xs p-4" style="display: none;" x-cloak>
+        <div @click.outside="deleteModal = false" class="bg-white rounded-3xl border-2 border-red-100 p-8 max-w-md w-full shadow-2xl space-y-6 text-center">
+            <div class="w-16 h-16 rounded-2xl bg-red-50 border-2 border-red-200 text-red-600 flex items-center justify-center text-2xl mx-auto">
+                <i class="fa-solid fa-triangle-exclamation"></i>
+            </div>
+            <div class="space-y-2">
+                <h3 class="text-base font-black text-slate-900">Delete Class Section?</h3>
+                <p class="text-xs font-bold text-slate-500">
+                    You are about to permanently delete:
+                </p>
+                <div class="mt-2 bg-red-50 border border-red-200 rounded-2xl px-4 py-3 text-left space-y-1">
+                    <p class="text-xs font-black text-slate-800"><span class="text-slate-400 font-bold">Section: </span><span x-text="deleteName"></span></p>
+                    <p class="text-xs font-black text-slate-800"><span class="text-slate-400 font-bold">Grade: </span><span x-text="deleteGrade"></span></p>
+                </div>
+                <p class="text-[11px] text-red-600 font-bold mt-1">This action cannot be undone. All data associated with this section may be affected.</p>
+            </div>
+            <form :action="'/admin/sections/' + deleteId" method="POST" class="grid grid-cols-2 gap-3">
+                <?php echo csrf_field(); ?>
+                <?php echo method_field('DELETE'); ?>
+                <button type="button" @click="deleteModal = false" class="w-full py-3.5 rounded-2xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-black uppercase tracking-wider cursor-pointer transition">
+                    Cancel
+                </button>
+                <button type="submit" class="w-full py-3.5 rounded-2xl bg-red-600 hover:bg-red-700 text-white text-xs font-black uppercase tracking-wider shadow-md transition cursor-pointer">
+                    <i class="fa-solid fa-trash-can mr-1"></i> Delete
+                </button>
+            </form>
+        </div>
+    </div>
+
+</div>
+<?php $__env->stopSection(); ?>
+<?php echo $__env->make('layouts.app', array_diff_key(get_defined_vars(), ['__data' => 1, '__path' => 1]))->render(); ?><?php /**PATH C:\Users\Ped\Desktop\CodeCommanders\resources\views\admin\sections\index.blade.php ENDPATH**/ ?>

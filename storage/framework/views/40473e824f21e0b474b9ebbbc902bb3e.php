@@ -1,0 +1,1 @@
+<?php echo $__env->make('teacher.classes', array_diff_key(get_defined_vars(), ['__data' => 1, '__path' => 1]))->render(); ?><?php /**PATH C:\Users\Ped\Desktop\CodeCommanders\resources\views\teacher\school-years.blade.php ENDPATH**/ ?>

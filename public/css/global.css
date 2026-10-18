@@ -1,0 +1,86 @@
+/* public/css/global.css */
+@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800;900&display=swap');
+
+body {
+    font-family: 'Plus Jakarta Sans', sans-serif;
+}
+
+/* SIATRACK Custom Folder Tab Card */
+.folder-tab-card {
+    position: relative;
+    background: #ffffff;
+    border: 2px solid #b91c1c;
+    border-radius: 18px;
+}
+
+.folder-tab-card::before {
+    content: '';
+    position: absolute;
+    top: -2px;
+    left: 20px;
+    width: 70px;
+    height: 10px;
+    background: #fcfbfb;
+    border-top: 2px solid #b91c1c;
+    border-left: 2px solid #b91c1c;
+    border-right: 2px solid #b91c1c;
+    border-top-left-radius: 6px;
+    border-top-right-radius: 6px;
+    transform: translateY(-8px);
+}
+
+/* Auth Banner Background */
+.login-banner-bg {
+    background-image: url('https://images.unsplash.com/photo-1523050854058-8df90110c9f1?q=80&w=1000');
+    background-size: cover;
+    background-position: center;
+}
+
+/* Custom Scrollbars */
+::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+}
+::-webkit-scrollbar-track {
+    background: #f1f1f1;
+}
+::-webkit-scrollbar-thumb {
+    background: #dc2626;
+    border-radius: 3px;
+}
+
+/* Alpine Cloak */
+[x-cloak] {
+    display: none !important;
+}
+
+/* Anti-flicker zero-layout-shift rules for sidebar */
+html.sidebar-collapsed aside#app-sidebar {
+    width: 5rem !important;
+}
+html.sidebar-collapsed main#app-main {
+    padding-left: 5rem !important;
+}
+
+/* Ensure sidebar and navigation links are never underlined by external CSS resets */
+aside a,
+#app-sidebar a,
+nav a {
+    text-decoration: none !important;
+}
+
+/* Keep labels aligned across admin, faculty, and student navigation. */
+#app-sidebar nav a > i:first-child,
+#app-sidebar nav a > div > i:first-child,
+#app-sidebar nav button > div > i:first-child {
+    width: 1.25rem;
+    flex: 0 0 1.25rem;
+    text-align: center;
+}
+
+#app-sidebar nav a > span,
+#app-sidebar nav a > div > span,
+#app-sidebar nav button > div > span {
+    min-width: 0;
+    text-align: left;
+}

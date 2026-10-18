@@ -1,0 +1,1 @@
+<?php /**PATH C:\Users\Ped\Desktop\CodeCommanders\resources\views\components\sidebar.blade.php ENDPATH**/ ?>

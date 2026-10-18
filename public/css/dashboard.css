@@ -1,0 +1,29 @@
+/* public/css/dashboard.css */
+@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800;900&display=swap');
+
+body {
+    font-family: 'Plus Jakarta Sans', sans-serif;
+}
+
+.folder-tab-card {
+    position: relative;
+    background: #ffffff;
+    border: 2px solid #b91c1c;
+    border-radius: 18px;
+}
+
+.folder-tab-card::before {
+    content: '';
+    position: absolute;
+    top: -2px;
+    left: 20px;
+    width: 70px;
+    height: 10px;
+    background: #fcfbfb;
+    border-top: 2px solid #b91c1c;
+    border-left: 2px solid #b91c1c;
+    border-right: 2px solid #b91c1c;
+    border-top-left-radius: 6px;
+    border-top-right-radius: 6px;
+    transform: translateY(-8px);
+}

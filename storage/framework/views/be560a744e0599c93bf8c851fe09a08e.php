@@ -1,0 +1,1 @@
+<?php echo $__env->make('teacher.message', array_diff_key(get_defined_vars(), ['__data' => 1, '__path' => 1]))->render(); ?><?php /**PATH C:\Users\Ped\Desktop\CodeCommanders\resources\views\teacher\messages.blade.php ENDPATH**/ ?>
